@@ -12,6 +12,10 @@ class User(Base):
     __tablename__ = 'users'
     id:Mapped[int]=mapped_column(primary_key=True)
     tg_id=mapped_column(BigInteger)
+    name:Mapped[str]=mapped_column(String(10))
+    famil: Mapped[str] = mapped_column(String(20))
+    age: Mapped[int] = mapped_column()
+    nimber:Mapped[str]=mapped_column(String(15))
 
 class Category(Base):
     __tablename__ = 'categories'
