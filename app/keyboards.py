@@ -33,15 +33,15 @@ async def catalog():
     return keyboard.adjust(2).as_markup()
 
 async def tovarik(id):
-    all_tovar = await get_items(id)
+    all_items = await get_items(id)
     keyboard = InlineKeyboardBuilder()
-    for tovar in all_tovar:
-        keyboard.add(InlineKeyboardButton(text=tovar.name, callback_data=f'tovar_{tovar.id}'))
+    for item in all_items:
+        keyboard.add(InlineKeyboardButton(text=item.name, callback_data=f'item_{item.id}'))
     keyboard.add(InlineKeyboardButton(text='Назад', callback_data='nazad'))
     return keyboard.adjust(1).as_markup()
 
 async def nazad():
     keyboard = InlineKeyboardBuilder()
-    keyboard.add(InlineKeyboardButton(text='Назад1', callback_data='nazad1'))
+    keyboard.add(InlineKeyboardButton(text='Назад1', callback_data='nazad'))
     return keyboard.adjust(1).as_markup()
 

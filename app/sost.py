@@ -7,3 +7,8 @@ class Register(StatesGroup):
     famil=State()
     age=State()
     nimber=State()
+
+class CatalogState(StatesGroup):
+    choose_category = State()
+    choose_item = State()
+    view_item = State()

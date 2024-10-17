@@ -4,12 +4,13 @@ from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
 from aiogram.filters import CommandStart, Command
+from unicodedata import category
 
 import app.keyboards as kb
 import app.sost as sos
 from app.database.requests import get_opis, add_us, get_items
 from app.keyboards import catalog, tovarik, nazad
-from aiogram import types
+
 router=Router()
 
 @router.message(CommandStart())
@@ -24,38 +25,44 @@ async def help(message:Message):
     await message.reply("pipi")
 
 @router.message(F.text=="Каталог")
-async def cat(message:Message):
+async def cat(message:Message, state:FSMContext):
     await message.answer("Выбери категорию товара:", reply_markup=await catalog())
+    await state.set_state(sos.CatalogState.choose_category)
 
 
 @router.callback_query(F.data.startswith('category_'))
-async def categor(callback:CallbackQuery):
+async def categor(callback:CallbackQuery, state:FSMContext):
+    category_id = callback.data.split('_')[1]
     await callback.answer('Вы выбрали категорию')
-    await callback.message.edit_text(f'Выберите товар:', reply_markup=await tovarik(callback.data.split('_')[1]))
+    await state.update_data(category_id=category_id)
+    await callback.message.edit_text(f'Выберите товар:', reply_markup=await tovarik(category_id))
+    await state.set_state(sos.CatalogState.choose_item)
 
-
-@router.callback_query(F.data.startswith('tovar_'))
-async def opis(callback:CallbackQuery):
+@router.callback_query(F.data.startswith('item_'))
+async def opis(callback:CallbackQuery, state:FSMContext):
     opi=await get_opis(callback.data.split('_')[1])
     await callback.message.edit_text(f'Название:{opi.name}\nОписание:{opi.description}\nЦена:{opi.price}',
                                   reply_markup=await nazad())
+    await state.set_state(sos.CatalogState.view_item)
 
-@router.callback_query(F.data.startswith('nazad1'))
-async def naza(callback: CallbackQuery):
-    tovari = await get_items(callback.data.split('_')[1])
-    await callback.answer('Вы выбрали категорию')
-    await callback.message.edit_text(f'Выберите товар:', reply_markup=await tovarik(tovari.split('_')[1]))
+@router.callback_query(F.data=='nazad')
+async def back(callback:CallbackQuery, state:FSMContext):
+    now_sost = await state.get_state()
 
-# @router.callback_query(F.data.startswith('nazad'))
-# async def naza(callback:CallbackQuery):
-#
-#     await callback.message.edit_text(f'Выберите товар:', reply_markup=await catalog())
+    data = await state.get_data()
+    category_id = data.get('category_id')
+    if now_sost == sos.CatalogState.view_item:
+        await callback.message.edit_text(f'Выберите товар:', reply_markup=await tovarik(category_id))
+        await state.set_state(sos.CatalogState.choose_item)
+
+    elif now_sost == sos.CatalogState.choose_item:
+        await callback.message.edit_text("Выбери категорию товара:", reply_markup=await catalog())
+        await state.set_state(sos.CatalogState.choose_category)
 
 @router.message(Command('registr'))
 async def registr(message:Message, state:FSMContext):
     await state.set_state(sos.Register.name)
     await message.answer('Введите ваше имя')
-
 
 @router.message(sos.Register.name)
 async def registr_name(message:Message, state:FSMContext):
@@ -86,7 +93,6 @@ async def registr_nimber(message:Message, state:FSMContext):
     else:
         await message.answer("Пожалуйста, отправьте контакт или введите правильный номер телефона.")
         return
-
     data=await state.get_data()
     await message.answer(f'Имя:{data["name"]}\nФамилия:{data["famil"]}\nВозраст:{data["age"]}\nНомер:{data["nimber"]}')
     await state.clear()

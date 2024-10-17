@@ -13,11 +13,11 @@ async def get_cat():
     async with async_session() as session:
         return await session.scalars(select(Category))
 
-async def get_items(id):
+async def get_items(category_id):
     async with async_session() as session:
-        return await session.scalars(select(Items).where(Items.category==id))
+        return await session.scalars(select(Items).where(Items.category==category_id))
 
-async def get_opis(id):
+async def get_opis(item_id):
     async with async_session() as session:
-        return await session.scalar(select(Items).where(Items.id==id))
+        return await session.scalar(select(Items).where(Items.id==item_id))
 
