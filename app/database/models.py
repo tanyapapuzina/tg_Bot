@@ -30,6 +30,16 @@ class Items(Base):
     price:Mapped[int]=mapped_column()
     category:Mapped[int]=mapped_column(ForeignKey('categories.id'))
 
+class Korzina(Base):
+    __tablename__ = 'vkorsine'
+    id:Mapped[int] = mapped_column(primary_key=True)
+    id_items: Mapped[int] = mapped_column(ForeignKey('items.id'))
+    tg_id=mapped_column(BigInteger)
+    name:Mapped[str]=mapped_column(String(25))
+    description:Mapped[str]=mapped_column(String(120))
+    price:Mapped[int]=mapped_column()
+
+
 async def async_main():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

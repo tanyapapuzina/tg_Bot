@@ -12,3 +12,4 @@ class CatalogState(StatesGroup):
     choose_category = State()
     choose_item = State()
     view_item = State()
+    view_korzina = State()
